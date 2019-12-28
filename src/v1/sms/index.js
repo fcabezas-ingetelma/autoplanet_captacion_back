@@ -13,7 +13,7 @@ router.post('/send_sms', (req, res) => {
         username: process.env.SMS_CHILE_USERNAME,
         password: process.env.SMS_CHILE_PASS,
         phone: req.body.phone,
-        message: req.body.message
+        message: CONSTANTS.SMS_MESSAGE.replace('{$CODE}', req.body.code)
     }
     let sendSms = async (requestBody) => {
         const response = await requester.sendSMS(requestBody);
