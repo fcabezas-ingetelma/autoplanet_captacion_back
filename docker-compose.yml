@@ -1,0 +1,18 @@
+version: '3.3'
+services:
+  mongodb:
+    image: mongo:latest
+    restart: always
+    environment:
+      MONGO_DATA_DIR: ${MONGO_DATA_DIR}
+      MONGO_LOG_DIR: ${MONGO_LOG_DIR}
+      MONGO_INITDB_DATABASE: ${MONGO_INITDB_DATABASE}
+      MONGO_INITDB_ROOT_USERNAME: ${MONGO_INITDB_ROOT_USERNAME}
+      MONGO_INITDB_ROOT_PASSWORD: ${MONGO_INITDB_ROOT_PASSWORD}
+    ports:
+      # <Port exposed> : < MySQL Port running inside container>
+      - '${MONGO_EXTERNAL_PORT}:${MONGO_PORT}'
+    volumes:
+      - ../autoplanet_nosql_data:/data/db
+      # seeding scripts
+      - ./mongo-entrypoint:/docker-entrypoint-initdb.d
