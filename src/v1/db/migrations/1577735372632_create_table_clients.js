@@ -1,7 +1,8 @@
 module.exports = {
-    "up": "CREATE TABLE users (" + 
+    "up": "CREATE TABLE clients (" + 
             "rut INT NOT NULL, " + 
             "dv VARCHAR(1), " +
+            "telefono INT NOT NULL, " + 
             "id_tracker INT, " + 
             "rut_captador INT, " +
             "codigo_sms_enviado INT, " + 
@@ -12,5 +13,5 @@ module.exports = {
             "updated_at DATE, " + 
             "PRIMARY KEY (rut), " + 
             "FOREIGN KEY (id_tracker) REFERENCES tracker(id))",
-    "down": "DROP TABLE users"
+    "down": "DROP TABLE clients"
 }
