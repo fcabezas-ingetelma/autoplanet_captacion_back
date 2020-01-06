@@ -3,7 +3,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import mysql from 'mysql';
 
-import sms from './v1/sms/index';
+import sms from './v1/routes/sms/index';
 
 var app = express();
 dotenv.config();
