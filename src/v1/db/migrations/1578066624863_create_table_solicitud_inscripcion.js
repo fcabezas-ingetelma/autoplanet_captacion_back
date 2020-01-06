@@ -1,6 +1,6 @@
 module.exports = {
     "up": "CREATE TABLE solicitud_inscripcion (" + 
-            "id INT AUTO_INCREMENT, " + 
+            "id INT NOT NULL AUTO_INCREMENT, " + 
             "estado_id INT, " +
             "rut INT, " + 
             "created_at DATE, " + 

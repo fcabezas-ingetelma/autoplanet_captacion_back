@@ -1,6 +1,6 @@
 module.exports = {
     "up": "CREATE TABLE tracker (" + 
-            "id INT AUTO_INCREMENT, " + 
+            "id INT NOT NULL AUTO_INCREMENT, " + 
             "rut_captador INT, " +
             "IP VARCHAR(255), " +
             "canal INT, " + 

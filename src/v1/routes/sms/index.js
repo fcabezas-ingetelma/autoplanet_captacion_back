@@ -19,7 +19,7 @@ var config = {
     }
 };
 
-router.post('/send_sms', (req, res) => {
+router.post('/send-sms', (req, res) => {
     requestBody.phone = req.body.phone;
     requestBody.message = CONSTANTS.SMS_MESSAGE.replace('{$CODE}', req.body.code)
 
@@ -27,7 +27,7 @@ router.post('/send_sms', (req, res) => {
         const response = await requestController.sendPostRequest(requestBody, config);
         res.setHeader('Content-Type', 'application/json');
         if(response.status == 200) {
-            res.end(CONSTANTS.createGenericJSONResponse(response.status, response.data));
+            res.end(CONSTANTS.createCustomJSONResponse(response.status, response.data));
         } else {
             res.end(CONSTANTS.createGenericErrorJSONResponse());
         }

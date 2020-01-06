@@ -1,6 +1,6 @@
 module.exports = {
     "up": "CREATE TABLE estado_solicitud_inscripcion (" + 
-            "id INT AUTO_INCREMENT, " + 
+            "id INT NOT NULL AUTO_INCREMENT, " + 
             "nombre_estado VARCHAR(255), " +
             "created_at DATE, " + 
             "updated_at DATE, " + 
