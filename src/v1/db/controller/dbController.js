@@ -1,13 +1,14 @@
 import * as CONSTANTS from '../../http/constants/constants';
 import openDBConnection from '../openConnection';
 
-export async function initTracker(response, rut_captador, ip, canal) {
+export async function initTracker(response, rut_captador, rut_cliente, ip, canal) {
     const db = openDBConnection();
     try {
         let createdAt = new Date();
-        var query = await db.query('INSERT INTO tracker (rut_captador, IP, canal, created_at, updated_at) VALUES (?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, canal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
                 [
-                    rut_captador,
+                    rut_captador, 
+                    rut_cliente, 
                     ip,
                     canal,
                     createdAt,
@@ -16,7 +17,8 @@ export async function initTracker(response, rut_captador, ip, canal) {
         if(query) {
             let data = {
                 id: query.insertId,
-                rut_captador: rut_captador,
+                rut_captador: rut_captador, 
+                rut_cliente: rut_cliente, 
                 ip: ip,
                 canal: canal,
                 createdAt: createdAt
@@ -31,10 +33,10 @@ export async function initTracker(response, rut_captador, ip, canal) {
     }
 }
 
-export async function updateTracker(response, tracker_id, rut_captador, ip, canal) {
+export async function updateTracker(response, tracker_id, rut_captador, rut_cliente, ip, canal) {
     const db = openDBConnection();
     try {
-        let queryData = makeTrackerUpdateData(tracker_id, rut_captador, ip, canal);
+        let queryData = makeTrackerUpdateData(tracker_id, rut_captador, rut_cliente, ip, canal);
         if(queryData) {
             var query = await db.query(queryData.updateString, queryData.values);
             if(query) {
@@ -52,13 +54,17 @@ export async function updateTracker(response, tracker_id, rut_captador, ip, cana
     }
 }
 
-function makeTrackerUpdateData(tracker_id, rut_captador, ip, canal) {
+function makeTrackerUpdateData(tracker_id, rut_captador, rut_cliente, ip, canal) {
     if(tracker_id) {
         let updateString = '';
         let values = [];
         if(rut_captador) {
             updateString = 'rut_captador = ?';
             values.push(rut_captador);
+        }
+        if(rut_cliente) {
+            updateString = updateString ? updateString + ', rut_cliente = ?' : updateString + 'rut_cliente = ?';
+            values.push(rut_cliente);
         }
         if(ip) {
             updateString = updateString ? updateString + ', IP = ?' : updateString + 'IP = ?';
@@ -87,16 +93,22 @@ function makeTrackerUpdateData(tracker_id, rut_captador, ip, canal) {
     }
 }
 
-export async function insertClient(response, rut, dv, cellphone, type, id_tracker, rut_captador, sended_sms_code, validated_sms_code, client_response) {
+export async function insertClient(response, rut, dv, cellphone, type, name, lastname, birth_date, edad, estado_civil, nacionalidad, sended_sms_code, validated_sms_code, client_response) {
     const db = openDBConnection();
     try {
-        var query = await db.query('INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     rut,
                     dv,
                     cellphone,
-                    id_tracker, //This parameter is not allowed here -> remove
-                    rut_captador,
+                    name, 
+                    lastname, 
+                    birth_date, 
+                    edad, 
+                    estado_civil, 
+                    nacionalidad, 
+                    undefined, // Canal data is not set on creation
+                    undefined, // rut_captador is not set on creation
                     sended_sms_code,
                     validated_sms_code, 
                     type,
@@ -106,6 +118,71 @@ export async function insertClient(response, rut, dv, cellphone, type, id_tracke
                 ]);
         if(query) {
             return CONSTANTS.createGenericDB_OKJSONResponse();
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function validatePhone(response, cellphone) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT telefono FROM clients WHERE telefono = ?', cellphone);
+        if(query.length) {
+            return {
+                exists: true
+            }
+        } else {
+            return {
+                exists: false
+            }
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function validateSMSReceived(response, sms_received, rut) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT codigo_sms_enviado FROM clients WHERE rut = ?', rut);
+        if(query.length) {
+            let sms_sended = query[0].codigo_sms_enviado;
+            if(sms_received == sms_sended) {
+                var validSMSSolicitud = await createSolicitud(response, 5 /** status 5 defined on BD, change if needed */, rut);
+                var res = {
+                    validated: true,
+                    solicitud: validSMSSolicitud
+                }
+
+                response.status(CONSTANTS.SERVER_OK_CODE);
+                return res;
+            } else {
+                var invalidSMSSolicitud = await createSolicitud(response, 6 /** status 6 defined on BD, change if needed */, rut);
+                var res = {
+                    validated: false,
+                    reason: CONSTANTS.SMS_RECEIVED_NOT_MATCH, 
+                    solicitud: invalidSMSSolicitud
+                }
+
+                response.status(CONSTANTS.BAD_REQUEST_CODE);
+                return res;
+            }
+        } else {
+            var res = {
+                validated: false,
+                reason: CONSTANTS.SMS_SENDED_NOT_EXISTS, 
+                solicitud: invalidSMSSolicitud
+            }
+
+            response.status(CONSTANTS.BAD_REQUEST_CODE);
+            return res;
         }
     } catch (err) {
         response.status(CONSTANTS.BAD_REQUEST_CODE);
