@@ -27,9 +27,9 @@ router.post('/send-sms', (req, res) => {
         const response = await requestController.sendPostRequest(requestBody, config);
         res.setHeader('Content-Type', 'application/json');
         if(response.status == 200) {
-            res.end(CONSTANTS.createCustomJSONResponse(response.status, response.data));
+            res.end(JSON.stringify(CONSTANTS.createCustomJSONResponse(response.status, response.data)));
         } else {
-            res.end(CONSTANTS.createGenericErrorJSONResponse());
+            res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse()));
         }
     }
 
