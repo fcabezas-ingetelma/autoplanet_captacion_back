@@ -54,6 +54,14 @@ router.put('/set-client', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
+router.patch('/update-validated-sms', async (req, res) => {
+    var response = await dbController.updateSMSData(res, 
+        req.body.validatedSMSCode, 
+        req.body.rut);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(response));
+});
+
 router.put('/create-solicitud', async (req, res) => {
     var response = await dbController.createSolicitud(res, 
         req.body.estado_id, 

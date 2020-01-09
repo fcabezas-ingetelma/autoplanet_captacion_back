@@ -131,6 +131,21 @@ export async function insertClient(response, rut, dv, cellphone, type, name, las
     }
 }
 
+export async function updateSMSData(response, validatedSMSCode, rut) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('UPDATE clients SET codigo_sms_validado = ?, updated_at = ? WHERE rut = ?', [ validatedSMSCode, new Date(), rut ]);
+        if(query) {
+            return CONSTANTS.createGenericDB_OKJSONResponse();
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
 export async function validatePhone(response, cellphone) {
     const db = openDBConnection();
     try {
