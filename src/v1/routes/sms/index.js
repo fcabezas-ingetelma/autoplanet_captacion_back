@@ -26,8 +26,12 @@ router.post('/send-sms', (req, res) => {
     let sendSms = async (requestBody, config) => {
         const response = await requestController.sendPostRequest(requestBody, config);
         res.setHeader('Content-Type', 'application/json');
-        if(response.status == 200) {
-            res.end(JSON.stringify(CONSTANTS.createCustomJSONResponse(response.status, response.data)));
+        if(response && response.status == 200) {
+            if(response.data.message === 'BAD PARAMETERS INVALID PHONE') {
+                res.end(JSON.stringify(CONSTANTS.createCustomJSONResponse(CONSTANTS.BAD_REQUEST_CODE, response.data.message)));
+            } else {
+                res.end(JSON.stringify(CONSTANTS.createCustomJSONResponse(response.status, response.data)));
+            }
         } else {
             res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse()));
         }

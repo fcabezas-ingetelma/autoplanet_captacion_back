@@ -120,7 +120,11 @@ export async function insertClient(response, rut, dv, cellphone, type, name, las
             return CONSTANTS.createGenericDB_OKJSONResponse();
         }
     } catch (err) {
-        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        switch (err.code) {
+            case 'ER_DUP_ENTRY': response.status(CONSTANTS.FORBIDDEN_CODE); 
+                                 break;
+            default: response.status(CONSTANTS.BAD_REQUEST_CODE);
+        }
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
     } finally {
         await db.close();

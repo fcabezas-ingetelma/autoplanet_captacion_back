@@ -13,7 +13,7 @@ module.exports = {
             "rut_captador INT, " +
             "codigo_sms_enviado INT, " + 
             "codigo_sms_validado INT, " + 
-            "tipo_cliente VARCHAR(10), " + 
+            "tipo_cliente VARCHAR(20), " + 
             "respuesta_cliente VARCHAR(2), " + 
             "created_at DATE, " + 
             "updated_at DATE, " + 
