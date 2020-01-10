@@ -26,6 +26,14 @@ class HttpRequestController {
             console.log(error);
         }
     }
+
+    async sendSOAPRequestWithUrl(serviceUrl, xml, requestConfig) {
+        try {
+            return await soapRequest({ url: serviceUrl, headers: requestConfig, xml: xml });
+        } catch (error) {
+            console.log(error);
+        }
+    }
 }
 
 export default HttpRequestController;

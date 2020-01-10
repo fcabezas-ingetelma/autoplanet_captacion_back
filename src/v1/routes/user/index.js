@@ -98,7 +98,7 @@ router.get('/validations/sms/:rut/:sms', async (req, res) => {
 });
 
 router.get('/get-sinacofi-data/:rut', async (req, res) => {
-    var requestController = new HttpRequestController(process.env.DATOS_PERSONA_URL);
+    var requestController = new HttpRequestController();
     var xml = `<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
                     <soap:Body>
                     <Consulta xmlns="http://sinacofi.cl/WebServices">
@@ -117,13 +117,12 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
         SOAPAction: 'http://sinacofi.cl/WebServices/Consulta',
     };
 
-    var { response } = await requestController.sendSOAPRequest(xml, requestConfig);
+    var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_PERSONA_URL, xml, requestConfig);
     const { body, statusCode } = response;
 
-    var xmlBody = body.replace('<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ConsultaResponse xmlns="http://sinacofi.cl/WebServices"><ConsultaResult><CodigoRetorno>10000</CodigoRetorno><TipoPersona>N</TipoPersona><ResultadoConsulta>S</ResultadoConsulta>', '<ConsultaResult>');
-    xmlBody = xmlBody.replace('</ConsultaResult></ConsultaResponse></soap:Body></soap:Envelope>', '</ConsultaResult>');
+    var responses = {};
 
-    parseString(xmlBody, async function (err, result) {
+    parseString(replaceSOAPTags(body), async function (err, result) {
         var queryResponse = await dbController.updateClientFromSinacofi(
             res, 
             req.params.rut.substring(0, req.params.rut.length - 1), 
@@ -134,9 +133,54 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
             result.ConsultaResult.PersonaNatural[0].EstadoCivil[0], 
             result.ConsultaResult.PersonaNatural[0].Nacionalidad[0]
             );
-        res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(queryResponse));
+
+        responses.user = queryResponse;
+
+        var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
+        const { body, statusCode } = response;
+        
+        parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
+            if(result.ConsultaResult.RegistraVehiculos[0] === 'N') {
+                //Does not have a vehicle
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(responses));
+            } else {
+                //Have a vehicle
+                var obj = result.ConsultaResult.Detalles[0].Detalle;
+                var size = obj.length;
+                var vehicleResults = [];
+                for(var i = 0; i < size; i++) {
+                    var vehicleQueryRes = await dbController.insertVehicle(
+                        res, 
+                        result.ConsultaResult.Detalles[0].Detalle[i].Patente[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].Marca[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].Modelo[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].Tipo[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].AnioFabricacion[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].TasacionDesde[0], 
+                        result.ConsultaResult.Detalles[0].Detalle[i].TasacionHasta[0], 
+                        req.params.rut.substring(0, req.params.rut.length - 1)
+                    );
+                    vehicleResults.push(vehicleQueryRes);
+                }
+
+                responses.vehicle = vehicleResults;
+
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(responses));
+            }
+        });
     });
 });
+
+function replaceSOAPTags(body) {
+    var xmlBody = body.replace('<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ConsultaResponse xmlns="http://sinacofi.cl/WebServices"><ConsultaResult><CodigoRetorno>10000</CodigoRetorno><TipoPersona>N</TipoPersona><ResultadoConsulta>S</ResultadoConsulta>', '<ConsultaResult>');
+    return xmlBody.replace('</ConsultaResult></ConsultaResponse></soap:Body></soap:Envelope>', '</ConsultaResult>');
+}
+
+function replaceSOAPTagsVehicle(body) {
+    var xmlBody = body.replace('<?xml version="1.0" encoding="utf-8"?><soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ConsultaResponse xmlns="http://sinacofi.cl/WebServices"><ConsultaResult>', '<ConsultaResult>');
+    return xmlBody.replace('</ConsultaResult></ConsultaResponse></soap:Body></soap:Envelope>', '</ConsultaResult>');
+}
 
 module.exports = router;

@@ -156,6 +156,31 @@ export async function updateClientFromSinacofi(response, rut, nombres, apellidos
     }
 }
 
+export async function insertVehicle(response, patente, marca, modelo, tipo, anio_fabricacion, tasacion_desde, tasacion_hasta, rut_cliente) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('INSERT INTO vehicles VALUES (?, ?, ?, ?, ?, ?, ?, ?)',
+        [
+            patente, 
+            marca, 
+            modelo, 
+            tipo, 
+            anio_fabricacion, 
+            tasacion_desde, 
+            tasacion_hasta, 
+            rut_cliente
+        ]);
+        if(query) {
+            return CONSTANTS.createGenericDB_OKJSONResponse();
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
 export async function updateSMSData(response, validatedSMSCode, rut) {
     const db = openDBConnection();
     try {
