@@ -264,20 +264,32 @@ export async function validateSMSReceived(response, sms_received, rut) {
 export async function createSolicitud(response, estado_id, rut) {
     const db = openDBConnection();
     try {
+        var selection = await db.query('SELECT * FROM solicitud_inscripcion WHERE rut = ?', rut);
         let createdAt = new Date();
-        var query = await db.query('INSERT INTO solicitud_inscripcion (estado_id, rut, created_at, updated_at) VALUES (?, ?, ?, ?)',
-                [
-                    estado_id,
-                    rut,
-                    createdAt,
-                    undefined // Not updated yet
-                ]);
+        let query;
+        if(selection.length) {
+            //There is a solicitud
+            query = await db.query('UPDATE solicitud_inscripcion SET estado_id = ?, updated_at = ? WHERE rut = ?',
+                    [
+                        estado_id,
+                        createdAt, 
+                        rut
+                    ]);
+        } else {
+            //First time
+            query = await db.query('INSERT INTO solicitud_inscripcion (estado_id, rut, created_at, updated_at) VALUES (?, ?, ?, ?)',
+                    [
+                        estado_id,
+                        rut,
+                        createdAt,
+                        undefined // Not updated yet
+                    ]);
+        }
         if(query) {
             let data = {
-                id: query.insertId,
                 estado_id: estado_id,
                 rut: rut,
-                createdAt: createdAt
+                createdOrUpdatedAt: createdAt
             }
             return CONSTANTS.createCustomJSONResponse(CONSTANTS.SERVER_OK_CODE, data);
         }

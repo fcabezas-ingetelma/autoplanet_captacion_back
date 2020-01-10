@@ -3,8 +3,8 @@ module.exports = {
             "id INT NOT NULL AUTO_INCREMENT, " + 
             "estado_id INT, " +
             "rut INT, " + 
-            "created_at DATE, " + 
-            "updated_at DATE, " + 
+            "created_at DATETIME, " + 
+            "updated_at DATETIME, " + 
             "PRIMARY KEY (id), " + 
             "FOREIGN KEY (estado_id) REFERENCES estado_solicitud_inscripcion(id), " +
             "FOREIGN KEY (rut) REFERENCES clients(rut))",

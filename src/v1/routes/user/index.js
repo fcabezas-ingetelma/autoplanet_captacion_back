@@ -4,6 +4,8 @@ import dotenv from 'dotenv';
 import * as dbController from '../../db/controller/dbController';
 import HttpRequestController from '../../http/httpRequestController';
 
+import * as CONSTANTS from '../../http/constants/constants'
+
 var parseString = require('xml2js').parseString;
 
 var router = express.Router();
@@ -123,6 +125,12 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
     var responses = {};
 
     parseString(replaceSOAPTags(body), async function (err, result) {
+        if(err) {
+            res.status(CONSTANTS.FORBIDDEN_CODE);
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse));
+        }
+
         var queryResponse = await dbController.updateClientFromSinacofi(
             res, 
             req.params.rut.substring(0, req.params.rut.length - 1), 
@@ -140,7 +148,7 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
         const { body, statusCode } = response;
         
         parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
-            if(result.ConsultaResult.RegistraVehiculos[0] === 'N') {
+            if(err || result.ConsultaResult.RegistraVehiculos[0] === 'N') {
                 //Does not have a vehicle
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(responses));
