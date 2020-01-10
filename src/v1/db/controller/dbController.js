@@ -131,6 +131,31 @@ export async function insertClient(response, rut, dv, cellphone, type, name, las
     }
 }
 
+export async function updateClientFromSinacofi(response, rut, nombres, apellidos, fechaNacimiento, edad, estadoCivil, nacionalidad) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('UPDATE clients SET nombres = ?, apellidos = ?, fecha_nacimiento = ?, edad = ?, estado_civil = ?, nacionalidad = ?, updated_at = ? WHERE rut = ?', 
+        [ 
+            nombres, 
+            apellidos, 
+            fechaNacimiento, 
+            edad, 
+            estadoCivil, 
+            nacionalidad, 
+            new Date(), 
+            rut 
+        ]);
+        if(query) {
+            return CONSTANTS.createGenericDB_OKJSONResponse();
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
 export async function updateSMSData(response, validatedSMSCode, rut) {
     const db = openDBConnection();
     try {

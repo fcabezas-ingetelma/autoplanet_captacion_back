@@ -123,16 +123,19 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
     var xmlBody = body.replace('<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ConsultaResponse xmlns="http://sinacofi.cl/WebServices"><ConsultaResult><CodigoRetorno>10000</CodigoRetorno><TipoPersona>N</TipoPersona><ResultadoConsulta>S</ResultadoConsulta>', '<ConsultaResult>');
     xmlBody = xmlBody.replace('</ConsultaResult></ConsultaResponse></soap:Body></soap:Envelope>', '</ConsultaResult>');
 
-    parseString(xmlBody, function (err, result) {
-        console.log(result.ConsultaResult.PersonaNatural[0].NombreCompleto[0]);
-        console.log(result.ConsultaResult.PersonaNatural[0].FechaNac[0]);
-        console.log(result.ConsultaResult.PersonaNatural[0].Edad[0]);
-        console.log(result.ConsultaResult.PersonaNatural[0].EstadoCivil[0]);
-        console.log(result.ConsultaResult.PersonaNatural[0].Nacionalidad[0]);
-        console.log(result.ConsultaResult.Direccion[0]);
-        console.log(result.ConsultaResult.Ciudad[0]);
+    parseString(xmlBody, async function (err, result) {
+        var queryResponse = await dbController.updateClientFromSinacofi(
+            res, 
+            req.params.rut.substring(0, req.params.rut.length - 1), 
+            result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
+            result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
+            result.ConsultaResult.PersonaNatural[0].FechaNac[0], 
+            parseInt(result.ConsultaResult.PersonaNatural[0].Edad[0]), 
+            result.ConsultaResult.PersonaNatural[0].EstadoCivil[0], 
+            result.ConsultaResult.PersonaNatural[0].Nacionalidad[0]
+            );
         res.setHeader('Content-Type', 'application/json');
-        res.end(JSON.stringify(result));
+        res.end(JSON.stringify(queryResponse));
     });
 });
 
