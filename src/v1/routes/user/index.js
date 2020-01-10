@@ -37,6 +37,7 @@ router.put('/set-client', async (req, res) => {
         req.body.rut, 
         req.body.dv, 
         req.body.cellphone, 
+        req.body.email, 
         req.body.type, 
         req.body.name, 
         req.body.lastname, 

@@ -3,6 +3,7 @@ module.exports = {
             "rut INT NOT NULL, " + 
             "dv VARCHAR(1), " +
             "telefono INT NOT NULL, " + 
+            "email VARCHAR(255), " + 
             "nombres VARCHAR(255), " + 
             "apellidos VARCHAR(255), " + 
             "fecha_nacimiento VARCHAR(255), " + 

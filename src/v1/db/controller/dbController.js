@@ -93,14 +93,15 @@ function makeTrackerUpdateData(tracker_id, rut_captador, rut_cliente, ip, canal)
     }
 }
 
-export async function insertClient(response, rut, dv, cellphone, type, name, lastname, birth_date, edad, estado_civil, nacionalidad, sended_sms_code, validated_sms_code, client_response) {
+export async function insertClient(response, rut, dv, cellphone, email, type, name, lastname, birth_date, edad, estado_civil, nacionalidad, sended_sms_code, validated_sms_code, client_response) {
     const db = openDBConnection();
     try {
-        var query = await db.query('INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     rut,
                     dv,
-                    cellphone,
+                    cellphone, 
+                    email, 
                     name, 
                     lastname, 
                     birth_date, 
@@ -264,7 +265,7 @@ export async function validateSMSReceived(response, sms_received, rut) {
 export async function createSolicitud(response, estado_id, rut) {
     const db = openDBConnection();
     try {
-        var selection = await db.query('SELECT * FROM solicitud_inscripcion WHERE rut = ?', rut);
+        var selection = await db.query('SELECT estado_id FROM solicitud_inscripcion WHERE rut = ?', rut);
         let createdAt = new Date();
         let query;
         if(selection.length) {
@@ -277,10 +278,10 @@ export async function createSolicitud(response, estado_id, rut) {
                     ]);
         } else {
             //First time
-            query = await db.query('INSERT INTO solicitud_inscripcion (estado_id, rut, created_at, updated_at) VALUES (?, ?, ?, ?)',
+            query = await db.query('INSERT INTO solicitud_inscripcion (rut, estado_id, created_at, updated_at) VALUES (?, ?, ?, ?)',
                     [
-                        estado_id,
                         rut,
+                        estado_id,
                         createdAt,
                         undefined // Not updated yet
                     ]);
