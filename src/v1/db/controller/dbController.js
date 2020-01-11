@@ -135,17 +135,26 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
 export async function setCanalAndCaptador(response, canal, rut_captador, rut_cliente) {
     const db = openDBConnection();
     try {
-        var query = await db.query(`UPDATE clients 
-                                    SET canal = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END, 
-                                        rut_captador = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END, 
+        var queryString = `UPDATE clients 
+                                    SET {$canal} {$rut_captador} 
                                         updated_at = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END
-                                    WHERE rut = ?`, 
-        [ 
-            canal, 
-            rut_captador, 
-            new Date(), 
-            rut_cliente 
-        ]);
+                                    WHERE rut = ?`;
+        var queryArray = [];
+        if(canal) {
+            queryString = queryString.replace('{$canal}', 'canal = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END,');
+            queryArray.push(canal);
+        } else {
+            queryString = queryString.replace('{$canal}', '');
+        }
+        if(rut_captador) {
+            queryString = queryString.replace('{$rut_captador}', 'rut_captador = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END,');
+            queryArray.push(rut_captador);
+        } else {
+            queryString = queryString.replace('{$rut_captador}', '');
+        }
+
+        queryArray.push(new Date(), rut_cliente );
+        var query = await db.query(queryString, queryArray);
         if(query) {
             return CONSTANTS.createGenericDB_OKJSONResponse();
         }
