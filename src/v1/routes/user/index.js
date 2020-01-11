@@ -76,6 +76,15 @@ router.put('/create-solicitud', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
+router.patch('/set-attendance-data', async (req, res) => {
+    var response = await dbController.setCanalAndCaptador(res, 
+        req.body.canal, 
+        req.body.rut_captador, 
+        req.body.rut_cliente);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(response));
+});
+
 router.get('/estados', async (req, res) => {
     var response = await dbController.getEstados(res);
     res.setHeader('Content-Type', 'application/json');
