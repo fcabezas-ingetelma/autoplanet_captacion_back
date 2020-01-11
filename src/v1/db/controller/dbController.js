@@ -122,10 +122,64 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
         }
     } catch (err) {
         switch (err.code) {
-            case 'ER_DUP_ENTRY': response.status(CONSTANTS.FORBIDDEN_CODE); 
+            case 'ER_DUP_ENTRY': response.status(CONSTANTS.SERVER_OK_CODE); 
                                  break;
             default: response.status(CONSTANTS.BAD_REQUEST_CODE);
         }
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function updateSMSSended(response, rut, newCode) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('UPDATE clients SET codigo_sms_enviado = ?, updated_at = ? WHERE rut = ?', 
+        [ 
+            newCode, 
+            new Date(), 
+            rut 
+        ]);
+        var phone = await db.query('SELECT telefono FROM clients WHERE rut = ?', rut);
+        if(phone) {
+            return phone[0].telefono;
+        }
+    } catch (err) {
+        return null;
+    } finally {
+        await db.close();
+    }
+}
+
+export async function validateSMSStatus(response, rut) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT codigo_sms_enviado, codigo_sms_validado, canal, rut_captador FROM clients WHERE rut = ?', rut);
+        if(query.length) {
+            var sended = query[0].codigo_sms_enviado;
+            var validated = query[0].codigo_sms_validado;
+            var canal = query[0].canal;
+            var rut_captador = query[0].rut_captador;
+            if(sended && !validated) {
+                //SMS Sended but no validated, must send again
+                return CONSTANTS.createCustomJSONResponse(CONSTANTS.SMS_SENDED_BUT_NO_VALIDATED_CODE, CONSTANTS.SMS_SENDED_BUT_NO_VALIDATED);
+            } else if(sended && validated) {
+                if(canal && rut_captador) {
+                    //Process finished
+                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
+                } else {
+                    //SMS Sended and validated, must finish process
+                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.SMS_SENDED_AND_VALIDATED_CODE, CONSTANTS.SMS_SENDED_AND_VALIDATED);
+                }
+            } else {
+                //Default case, it should no pass here
+                response.status(CONSTANTS.NOT_FOUND_CODE);
+                return CONSTANTS.createCustomJSONResponse(CONSTANTS.NOT_FOUND_CODE, CONSTANTS.ERROR_MESSAGE);
+            }
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
     } finally {
         await db.close();

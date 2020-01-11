@@ -109,6 +109,12 @@ router.get('/validations/sms/:rut/:sms', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
+router.get('/validations/status/:rut', async (req, res) => {
+    var response = await dbController.validateSMSStatus(res, req.params.rut);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(response));
+});
+
 router.get('/get-sinacofi-data/:rut', async (req, res) => {
     var requestController = new HttpRequestController();
     var xml = `<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
