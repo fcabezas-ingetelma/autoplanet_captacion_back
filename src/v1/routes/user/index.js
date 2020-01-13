@@ -60,6 +60,19 @@ router.put('/set-client', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
+router.patch('/set-client', async (req, res) => {
+    var response = await dbController.updateClient(
+        res, 
+        req.body.rut, 
+        req.body.cellphone, 
+        req.body.email, 
+        req.body.type, 
+        req.body.client_response
+    );
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(response));
+});
+
 router.patch('/update-validated-sms', async (req, res) => {
     var response = await dbController.updateSMSData(res, 
         req.body.validatedSMSCode, 
@@ -97,8 +110,8 @@ router.get('/estados/:estadoId', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
-router.get('/validations/phone/:cellphone', async (req, res) => {
-    var response = await dbController.validatePhone(res, req.params.cellphone);
+router.get('/validations/phone/:rut/:cellphone', async (req, res) => {
+    var response = await dbController.validatePhone(res, req.params.rut, req.params.cellphone);
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
 });

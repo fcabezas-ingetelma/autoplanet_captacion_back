@@ -132,6 +132,29 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
     }
 }
 
+export async function updateClient(response, rut, cellphone, email, type, client_response) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('UPDATE clients SET telefono = ?, email = ?, tipo_cliente = ?, respuesta_cliente = ?, updated_at = ? WHERE rut = ?', 
+        [ 
+            cellphone, 
+            email, 
+            type, 
+            client_response, 
+            new Date(), 
+            rut 
+        ]);
+        if(query) {
+            return CONSTANTS.createGenericDB_OKJSONResponse();
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
 export async function updateSMSSended(response, rut, newCode) {
     const db = openDBConnection();
     try {
@@ -285,17 +308,29 @@ export async function updateSMSData(response, validatedSMSCode, rut) {
     }
 }
 
-export async function validatePhone(response, cellphone) {
+export async function validatePhone(response, rut, cellphone) {
     const db = openDBConnection();
     try {
-        var query = await db.query('SELECT telefono FROM clients WHERE telefono = ?', cellphone);
+        var query = await db.query('SELECT rut, telefono FROM clients WHERE telefono = ?', cellphone);
         if(query.length) {
-            return {
-                exists: true
+            if(query[0].rut != rut) {
+                //Rut doesn't match, another client is trying to put your phone
+                return {
+                    isValid: false, 
+                    match: false
+                }
+            } else {
+                //Match rut and phone
+                return {
+                    isValid: true, 
+                    match: true
+                }
             }
         } else {
+            //Phone is not associated with a rut
             return {
-                exists: false
+                isValid: true, 
+                match: false
             }
         }
     } catch (err) {
