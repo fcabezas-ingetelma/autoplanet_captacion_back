@@ -1,16 +1,19 @@
 import * as CONSTANTS from '../../http/constants/constants';
 import openDBConnection from '../openConnection';
 
-export async function initTracker(response, rut_captador, rut_cliente, ip, canal) {
+export async function initTracker(response, rut_captador, rut_cliente, ip, canal, sku, user_agent, os) {
     const db = openDBConnection();
     try {
         let createdAt = new Date();
-        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, canal, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, canal, sku, user_agent, os, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     rut_captador, 
                     rut_cliente, 
                     ip,
-                    canal,
+                    canal, 
+                    sku, 
+                    user_agent, 
+                    os, 
                     createdAt,
                     undefined // Not updated yet
                 ]);
@@ -20,7 +23,10 @@ export async function initTracker(response, rut_captador, rut_cliente, ip, canal
                 rut_captador: rut_captador, 
                 rut_cliente: rut_cliente, 
                 ip: ip,
-                canal: canal,
+                canal: canal, 
+                sku: sku, 
+                user_agent: user_agent, 
+                os: os, 
                 createdAt: createdAt
             }
             return CONSTANTS.createCustomJSONResponse(CONSTANTS.SERVER_OK_CODE, data);

@@ -16,7 +16,10 @@ router.put('/set-tracker', async (req, res) => {
         req.body.rut_captador, 
         req.body.rut_cliente, 
         req.body.ip, 
-        req.body.canal);
+        req.body.canal, 
+        req.body.sku, 
+        req.body.userAgent, 
+        req.body.os);
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
 });
