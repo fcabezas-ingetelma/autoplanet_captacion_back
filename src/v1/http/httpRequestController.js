@@ -19,6 +19,14 @@ class HttpRequestController {
         }
     }
 
+    async sendJSONPostRequest(requestBody, requestConfig) {
+        try {
+            return await axios.post(this.url, requestBody, requestConfig);
+        } catch (error) {
+            console.log(error);
+        }
+    }
+
     async sendSOAPRequest(xml, requestConfig) {
         try {
             return await soapRequest({ url: this.url, headers: requestConfig, xml: xml });
