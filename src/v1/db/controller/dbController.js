@@ -1,4 +1,5 @@
 import * as CONSTANTS from '../../http/constants/constants';
+import * as Utils from '../../utils/utils';
 import openDBConnection from '../openConnection';
 
 export async function initTracker(response, rut_captador, rut_cliente, ip, canal, sku, user_agent, os) {
@@ -462,6 +463,52 @@ export async function getEstado(response, estadoId) {
         }
     } catch (err) {
         response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function initWSTokenState(cellphone) {
+    const db = openDBConnection();
+    try {
+        const token = Utils.randomTokenGenerator();
+        var query = await db.query('INSERT INTO wstokens (telefono, token, expiration, validated) VALUES (?, ?, ?, ?)', 
+        [
+            cellphone, 
+            token, 
+            Date.now() + 900000, 
+            false
+        ]);
+        if(query) {
+            let okModel = CONSTANTS.createGenericDB_OKJSONResponse();
+            okModel.data.token = token;
+            return okModel;
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function validateToken(cellphone, token) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT token FROM wstokens WHERE telefono = ? AND expiration <= now() + INTERVAL 15 MINUTE', 
+        [
+            cellphone
+        ]);
+        if(query.length && query[0].token === token) {
+            return {
+                valid: true
+            }
+        } else {
+            return {
+                valid: false
+            }
+        }
+    } catch (err) {
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
     } finally {
         await db.close();
