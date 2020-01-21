@@ -84,7 +84,13 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
 export async function updateClient(response, rut, cellphone, email, type, client_response) {
     const db = openDBConnection();
     try {
-        var query = await db.query('UPDATE clients SET telefono = ?, email = ?, tipo_cliente = ?, respuesta_cliente = ?, updated_at = ? WHERE rut = ?', 
+        var query = await db.query(`UPDATE clients SET 
+                                        telefono = COALESCE(?, telefono), 
+                                        email = COALESCE(?, email), 
+                                        tipo_cliente = COALESCE(?, tipo_cliente), 
+                                        respuesta_cliente = COALESCE(?, respuesta_cliente), 
+                                        updated_at = ? 
+                                    WHERE rut = ?`, 
         [ 
             cellphone, 
             email, 
