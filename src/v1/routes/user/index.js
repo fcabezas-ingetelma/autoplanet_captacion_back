@@ -16,21 +16,11 @@ router.put('/set-tracker', async (req, res) => {
         req.body.rut_captador, 
         req.body.rut_cliente, 
         req.body.ip, 
+        req.body.cellphone, 
         req.body.canal, 
         req.body.sku, 
         req.body.userAgent, 
         req.body.os);
-    res.setHeader('Content-Type', 'application/json');
-    res.end(JSON.stringify(response));
-});
-
-router.patch('/update-tracker', async (req, res) => {
-    var response = await dbController.updateTracker(res, 
-        req.body.tracker_id, 
-        req.body.rut_captador,
-        req.body.rut_cliente, 
-        req.body.ip, 
-        req.body.canal);
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
 });
@@ -56,7 +46,11 @@ router.put('/set-client', async (req, res) => {
         req.body.rut_captador, 
         req.body.rut, 
         req.body.ip, 
-        req.body.canal);
+        req.body.cellphone, 
+        req.body.canal, 
+        req.body.sku, 
+        req.body.userAgent, 
+        req.body.os);
 
     response.trackerData = tracker;
     res.setHeader('Content-Type', 'application/json');

@@ -2,15 +2,16 @@ import * as CONSTANTS from '../../http/constants/constants';
 import * as Utils from '../../utils/utils';
 import openDBConnection from '../openConnection';
 
-export async function initTracker(response, rut_captador, rut_cliente, ip, canal, sku, user_agent, os) {
+export async function initTracker(response, rut_captador, rut_cliente, ip, cellphone, canal, sku, user_agent, os) {
     const db = openDBConnection();
     try {
         let createdAt = new Date();
-        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, canal, sku, user_agent, os, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, telefono, canal, sku, user_agent, os, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     rut_captador, 
                     rut_cliente, 
                     ip,
+                    cellphone, 
                     canal, 
                     sku, 
                     user_agent, 
@@ -24,6 +25,7 @@ export async function initTracker(response, rut_captador, rut_cliente, ip, canal
                 rut_captador: rut_captador, 
                 rut_cliente: rut_cliente, 
                 ip: ip,
+                cellphone: cellphone, 
                 canal: canal, 
                 sku: sku, 
                 user_agent: user_agent, 
@@ -37,66 +39,6 @@ export async function initTracker(response, rut_captador, rut_cliente, ip, canal
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
     } finally {
         await db.close();
-    }
-}
-
-export async function updateTracker(response, tracker_id, rut_captador, rut_cliente, ip, canal) {
-    const db = openDBConnection();
-    try {
-        let queryData = makeTrackerUpdateData(tracker_id, rut_captador, rut_cliente, ip, canal);
-        if(queryData) {
-            var query = await db.query(queryData.updateString, queryData.values);
-            if(query) {
-                return CONSTANTS.createCustomJSONResponse(CONSTANTS.SERVER_OK_CODE, CONSTANTS.DB_UPDATE_OK_MESSAGE);
-            }
-        } else {
-            response.status(CONSTANTS.BAD_REQUEST_CODE);
-            return CONSTANTS.createGenericErrorJSONResponse();
-        }
-    } catch (err) {
-        response.status(CONSTANTS.BAD_REQUEST_CODE);
-        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
-    } finally {
-        await db.close();
-    }
-}
-
-function makeTrackerUpdateData(tracker_id, rut_captador, rut_cliente, ip, canal) {
-    if(tracker_id) {
-        let updateString = '';
-        let values = [];
-        if(rut_captador) {
-            updateString = 'rut_captador = ?';
-            values.push(rut_captador);
-        }
-        if(rut_cliente) {
-            updateString = updateString ? updateString + ', rut_cliente = ?' : updateString + 'rut_cliente = ?';
-            values.push(rut_cliente);
-        }
-        if(ip) {
-            updateString = updateString ? updateString + ', IP = ?' : updateString + 'IP = ?';
-            values.push(ip);
-        }
-        if(canal) {
-            updateString = updateString ? updateString + ', canal = ?' : updateString + 'canal = ?';
-            values.push(canal);
-        }
-
-        if(updateString) {
-            updateString = updateString ? updateString + ', updated_at = ?' : updateString + 'updated_at = ?';
-            values.push(new Date());
-        
-            updateString = 'UPDATE tracker SET ' + updateString + ' WHERE id = ?';
-            values.push(tracker_id);
-            return {
-                updateString: updateString,
-                values: values
-            }
-        } else {
-            return null;
-        }
-    } else {
-        return null;
     }
 }
 

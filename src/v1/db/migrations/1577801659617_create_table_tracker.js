@@ -4,6 +4,7 @@ module.exports = {
             "rut_captador INT, " +
             "rut_cliente INT, " +
             "IP VARCHAR(255), " +
+            "telefono INT, " + 
             "canal INT, " + 
             "sku INT, " + 
             "user_agent VARCHAR(255), " + 
