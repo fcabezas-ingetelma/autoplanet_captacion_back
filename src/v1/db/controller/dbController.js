@@ -203,9 +203,14 @@ export async function validateSMSStatus(response, rut) {
                     return CONSTANTS.createCustomJSONResponse(CONSTANTS.SMS_SENDED_AND_VALIDATED_CODE, CONSTANTS.SMS_SENDED_AND_VALIDATED);
                 }
             } else {
-                //Default case, it should no pass here
-                response.status(CONSTANTS.NOT_FOUND_CODE);
-                return CONSTANTS.createCustomJSONResponse(CONSTANTS.NOT_FOUND_CODE, CONSTANTS.ERROR_MESSAGE);
+                if(canal && rut_captador) {
+                    //Process finished by WhatsApp
+                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
+                } else {
+                    //Default case, it should no pass here
+                    response.status(CONSTANTS.NOT_FOUND_CODE);
+                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.NOT_FOUND_CODE, CONSTANTS.ERROR_MESSAGE);
+                }
             }
         }
     } catch (err) {
