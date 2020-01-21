@@ -221,17 +221,17 @@ export async function setCanalAndCaptador(response, canal, rut_captador, rut_cli
     try {
         var queryString = `UPDATE clients 
                                     SET {$canal} {$rut_captador} 
-                                        updated_at = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END
+                                        updated_at = ?
                                     WHERE rut = ?`;
         var queryArray = [];
         if(canal) {
-            queryString = queryString.replace('{$canal}', 'canal = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END,');
+            queryString = queryString.replace('{$canal}', 'canal = ?,');
             queryArray.push(canal);
         } else {
             queryString = queryString.replace('{$canal}', '');
         }
         if(rut_captador) {
-            queryString = queryString.replace('{$rut_captador}', 'rut_captador = CASE WHEN (codigo_sms_validado IS NOT NULL) THEN ? END,');
+            queryString = queryString.replace('{$rut_captador}', 'rut_captador = ?,');
             queryArray.push(rut_captador);
         } else {
             queryString = queryString.replace('{$rut_captador}', '');
@@ -473,16 +473,27 @@ export async function initWSTokenState(cellphone) {
     const db = openDBConnection();
     try {
         const token = Utils.randomTokenGenerator();
-        var query = await db.query('INSERT INTO wstokens (telefono, token, expiration, validated) VALUES (?, ?, ?, ?)', 
-        [
-            cellphone, 
-            token, 
-            Date.now() + 900000, 
-            false
-        ]);
+        let exists = await db.query('SELECT token FROM wstokens WHERE telefono = ?', [ cellphone ]);
+        var query;
+        if(exists.length) {
+            query = await db.query('UPDATE wstokens SET token = ?, expiration = DATE_ADD(?, INTERVAL 15 MINUTE), validated = FALSE WHERE telefono = ?', 
+            [
+                token, 
+                new Date(), 
+                cellphone
+            ]);
+        } else {
+            query = await db.query('INSERT INTO wstokens (telefono, token, expiration, validated) VALUES (?, ?, DATE_ADD(?, INTERVAL 15 MINUTE), ?)', 
+            [
+                cellphone, 
+                token, 
+                new Date(), 
+                false
+            ]);
+        }
         if(query) {
             let okModel = CONSTANTS.createGenericDB_OKJSONResponse();
-            okModel.data.token = token;
+            okModel.token = token;
             return okModel;
         }
     } catch (err) {
@@ -495,7 +506,7 @@ export async function initWSTokenState(cellphone) {
 export async function validateToken(cellphone, token) {
     const db = openDBConnection();
     try {
-        var query = await db.query('SELECT token FROM wstokens WHERE telefono = ? AND expiration <= now() + INTERVAL 15 MINUTE', 
+        var query = await db.query('SELECT token FROM wstokens WHERE telefono = ? AND expiration <= now() + INTERVAL 15 MINUTE AND validated = FALSE', 
         [
             cellphone
         ]);
@@ -507,6 +518,24 @@ export async function validateToken(cellphone, token) {
             return {
                 valid: false
             }
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function setTokenUsed(cellphone, token) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('UPDATE wstokens SET validated = TRUE WHERE telefono = ? AND token = ?', 
+        [
+            cellphone, 
+            token
+        ]);
+        if(query) {
+            return CONSTANTS.createGenericDB_OKJSONResponse();
         }
     } catch (err) {
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);

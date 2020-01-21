@@ -16,7 +16,7 @@ const config = {
 
 router.post('/url-shortener-service', async (req, res) => {
     let requestController = new HttpRequestController(process.env.URL_SHORTENER_URI + process.env.URL_SHORTENER_API_KEY);
-    let params = 'r=' + req.body.rut_captador + '&telefono=' + req.body.cellphone + '&c=20';
+    let params = 'r=' + req.body.rut_captador + '&token=' + req.body.token + '&telefono=' + req.body.cellphone + '&c=20';
     let destUrl = req.body.url + '?encodedData=' + Utils.encodeToBase64(params);
     let requestBody = {
         longDynamicLink: "https://autoplanet.page.link/?link=" + destUrl
