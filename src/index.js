@@ -28,15 +28,13 @@ const credentials = {
 	ca: ca
 };
 
-if(process.env.NODE_ENV == 'development') {
-    //Development
-    app.use(function(req, res, next) {
-        res.header("Access-Control-Allow-Origin", "*");
-        res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
-        res.header("Access-Control-Allow-Methods", "*");
-        next();
-    });
-}
+//Development
+app.use(function(req, res, next) {
+    res.header("Access-Control-Allow-Origin", "*");
+    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept");
+    res.header("Access-Control-Allow-Methods", "*");
+    next();
+});
 
 app.use('/v1/sms', sms);
 app.use('/v1/user', user);
