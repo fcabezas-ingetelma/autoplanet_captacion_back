@@ -3,7 +3,6 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import https from 'https';
 import fs from 'fs';
-import path from 'path';
 
 import sms from './v1/routes/sms/index';
 import user from './v1/routes/user/index';
@@ -17,6 +16,17 @@ app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
     extended: true
 }))
+
+// Certificate
+const privateKey = fs.readFileSync(process.env.PRIVATE_KEY_PATH, 'utf8');
+const certificate = fs.readFileSync(process.env.CERTIFICATE_PATH, 'utf8');
+const ca = fs.readFileSync(process.env.CA_PATH, 'utf8');
+
+const credentials = {
+	key: privateKey,
+	cert: certificate,
+	ca: ca
+};
 
 if(process.env.NODE_ENV == 'development') {
     //Development
@@ -37,9 +47,8 @@ app.get('/', (req, res) => {
     res.send('Index');
 })
 
-https.createServer({
-    key: fs.readFileSync(path.resolve(__dirname, '../key.pem')),
-    cert: fs.readFileSync(path.resolve(__dirname, '../cert.pem')),
-    passphrase: process.env.PEM_PASSPHRASE
-}, app)
-.listen(process.env.PORT);
+const httpsServer = https.createServer(credentials, app);
+
+httpsServer.listen(process.env.PORT, () => {
+	console.log('HTTPS Server running on port' + process.env.PORT);
+});
