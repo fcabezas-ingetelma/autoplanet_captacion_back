@@ -1,6 +1,7 @@
 import express from 'express';
 import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
+import http from 'http';
 import https from 'https';
 import fs from 'fs';
 
@@ -45,8 +46,15 @@ app.get('/', (req, res) => {
     res.send('Index');
 })
 
+const httpServer = http.createServer(app);
 const httpsServer = https.createServer(credentials, app);
 
+if(process.env.NODE_ENV == 'development') {
+    httpServer.listen(process.env.HTTP_PORT, () => {
+        console.log('HTTP Server running on port ' + process.env.HTTP_PORT);
+    });
+}
+
 httpsServer.listen(process.env.PORT, () => {
-	console.log('HTTPS Server running on port' + process.env.PORT);
+	console.log('HTTPS Server running on port ' + process.env.PORT);
 });
