@@ -496,3 +496,35 @@ export async function setTokenUsed(cellphone, token) {
         await db.close();
     }
 }
+
+export async function captadorLogin(user, pass) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT rut FROM captadores WHERE rut = ? AND password = SHA1(?)', 
+        [
+            user, 
+            pass
+        ]);
+        if(query.length) {
+            const token = Utils.randomTokenGenerator();
+            query = await db.query('UPDATE captadores SET token = ?, expiration = DATE_ADD(?, INTERVAL 15 MINUTE) WHERE rut = ?', 
+            [
+                token, 
+                new Date(), 
+                user
+            ]);
+            return {
+                loginStatus: true, 
+                token: token
+            }
+        } else {
+            return {
+                loginStatus: false
+            }
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}

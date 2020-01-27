@@ -7,8 +7,9 @@ import fs from 'fs';
 
 import sms from './v1/routes/sms/index';
 import user from './v1/routes/user/index';
-import urlService from './v1/routes/url_shortener/index'
-import token from './v1/routes/token/index'
+import urlService from './v1/routes/url_shortener/index';
+import token from './v1/routes/token/index';
+import backoffice from './v1/routes/backoffice';
 
 var app = express();
 dotenv.config();
@@ -41,6 +42,7 @@ app.use('/v1/sms', sms);
 app.use('/v1/user', user);
 app.use('/v1/url', urlService);
 app.use('/v1/token', token);
+app.use('/v1/backoffice', backoffice);
 
 app.get('/', (req, res) => {
     res.send('Index');
