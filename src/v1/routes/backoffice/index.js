@@ -12,10 +12,8 @@ router.post('/captador-auth', async (req, res) => {
 });
 
 router.get('/get-captador-dashboard/:rut_captador', async (req, res) => {
-    console.log(req.headers.token);
-    console.log(req.params.rut_captador);
-
-    res.json();
+    var response = await dbController.getDashBoardData(req.headers.token, req.params.rut_captador);
+    res.json(response);
 });
 
 module.exports = router;

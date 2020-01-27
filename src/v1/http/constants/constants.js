@@ -10,6 +10,8 @@ export const SMS_SENDED_BUT_NO_VALIDATED_CODE = 150;
 export const SMS_SENDED_AND_VALIDATED_CODE = 160;
 export const PROCESS_FINISHED_CODE = 170;
 
+export const INVALID_CAPTADOR_TOKEN_CODE = 600;
+
 export const ERROR_MESSAGE = 'Ha habido un problema al procesar su solicitud. Por favor, intente nuevamente';
 export const SMS_MESSAGE = 'Estimado cliente, su codigo es {$CODE} y es valido por 15 minutos.';
 export const DB_OK_MESSAGE = 'DB transaction was OK';
@@ -21,6 +23,8 @@ export const SMS_RECEIVED_NOT_MATCH = 'El código SMS recibido no coincide con e
 export const SMS_SENDED_BUT_NO_VALIDATED = 'El código SMS fue enviado pero no validado, reiniciar.';
 export const SMS_SENDED_AND_VALIDATED = 'El código SMS fue enviado y validado, finalizar proceso.';
 export const PROCESS_FINISHED = 'El usuario ya ha sido registrado con éxito.';
+
+export const INVALID_CAPTADOR_TOKEN = 'La sesión ha caducado o el usuario no está registrado. Por favor, intente nuevamente haciendo ingreso del usuario.';
 
 export function createCustomJSONResponse(responseCode, responseMessage) {
     let response = {

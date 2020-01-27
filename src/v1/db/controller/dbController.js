@@ -528,3 +528,32 @@ export async function captadorLogin(user, pass) {
         await db.close();
     }
 }
+
+export async function getDashBoardData(token, rut_captador) {
+    const db = openDBConnection();
+    try {
+        var tokenValidation = await db.query('SELECT token FROM captadores WHERE rut = ?', 
+        [
+            rut_captador
+        ]);
+        if(tokenValidation.length && tokenValidation[0].token === token) {
+            let response = {};
+            response.visitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 2'))[0].counter;
+            response.enrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 2'))[0].counter;
+            response.illussionsGiftVisitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 18'))[0].counter;
+            response.illussionsGiftEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 18'))[0].counter;
+            response.clientOfferVisitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 19'))[0].counter;
+            response.clientOfferEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 19'))[0].counter;
+            return {
+                status: true, 
+                data: response
+            }
+        } else {
+            return CONSTANTS.createCustomJSONResponse(CONSTANTS.INVALID_CAPTADOR_TOKEN_CODE, CONSTANTS.INVALID_CAPTADOR_TOKEN);
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
