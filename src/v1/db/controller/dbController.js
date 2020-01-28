@@ -544,6 +544,8 @@ export async function getDashBoardData(token, rut_captador) {
             response.illussionsGiftEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 18'))[0].counter;
             response.clientOfferVisitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 19'))[0].counter;
             response.clientOfferEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 19'))[0].counter;
+            response.sellerVisitsDetail = await db.query('SELECT rut_captador, count(*) AS count FROM tracker WHERE canal = 2 and rut_captador BETWEEN 1 AND 10 GROUP BY rut_captador');
+            response.sellerEnrollmentDetail = await db.query('SELECT rut_captador, count(*) AS count FROM clients WHERE canal = 2 and rut_captador BETWEEN 1 AND 10 GROUP BY rut_captador');
             return {
                 status: true, 
                 data: response
