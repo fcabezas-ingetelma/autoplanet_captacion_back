@@ -496,3 +496,70 @@ export async function setTokenUsed(cellphone, token) {
         await db.close();
     }
 }
+
+export async function captadorLogin(user, pass) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT rut FROM captadores WHERE rut = ? AND password = SHA1(?)', 
+        [
+            user, 
+            pass
+        ]);
+        if(query.length) {
+            const token = Utils.randomTokenGenerator();
+            query = await db.query('UPDATE captadores SET token = ?, expiration = DATE_ADD(?, INTERVAL 15 MINUTE) WHERE rut = ?', 
+            [
+                token, 
+                new Date(), 
+                user
+            ]);
+            return {
+                loginStatus: true, 
+                token: token
+            }
+        } else {
+            return {
+                loginStatus: false
+            }
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function getDashBoardData(token, rut_captador) {
+    const db = openDBConnection();
+    try {
+        var tokenValidation = await db.query('SELECT token FROM captadores WHERE rut = ?', 
+        [
+            rut_captador
+        ]);
+        if(tokenValidation.length && tokenValidation[0].token === token) {
+            let response = {};
+            response.visitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 2'))[0].counter;
+            response.enrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 2'))[0].counter;
+            response.illussionsGiftVisitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 18'))[0].counter;
+            response.illussionsGiftEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 18'))[0].counter;
+            response.clientOfferVisitCounter = (await db.query('SELECT count(*) AS counter FROM tracker WHERE canal = 19'))[0].counter;
+            response.clientOfferEnrollmentCounter = (await db.query('SELECT count(*) AS counter FROM clients WHERE canal = 19'))[0].counter;
+            response.sellerDetail = await db.query(`SELECT t1.rut_captador, t1.Visits, t2.Enrollment
+                                                        FROM 
+                                                            (SELECT rut_captador, count(*) AS Visits FROM tracker WHERE canal = 2 and rut_captador BETWEEN 1 AND 10 GROUP BY rut_captador) t1
+                                                        LEFT JOIN
+                                                            (SELECT rut_captador, count(*) AS Enrollment FROM clients WHERE canal = 2 and rut_captador BETWEEN 1 AND 10 GROUP BY rut_captador) t2
+                                                        ON (t1.rut_captador = t2.rut_captador)`);
+            return {
+                status: true, 
+                data: response
+            }
+        } else {
+            return CONSTANTS.createCustomJSONResponse(CONSTANTS.INVALID_CAPTADOR_TOKEN_CODE, CONSTANTS.INVALID_CAPTADOR_TOKEN);
+        }
+    } catch (err) {
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}

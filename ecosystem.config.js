@@ -19,7 +19,7 @@ module.exports = {
       production : {
         user : 'ec2-user',
         host : '54.191.66.41',
-        ref  : 'origin/develop',
+        ref  : 'origin/feature/backoffice',
         repo : 'git@github.com:fcabezas-ingetelma/autoplanet_captacion_back.git',
         path : '/home/ec2-user/autoplanet_captacion_back',
         key  : '../aws_keys/autoplanet_back.pem',
