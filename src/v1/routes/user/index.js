@@ -107,6 +107,12 @@ router.get('/estados/:estadoId', async (req, res) => {
     res.end(JSON.stringify(response));
 });
 
+router.get('/estados/cliente/:rut', async (req, res) => {
+    var response = await dbController.getClienteEstado(res, req.params.rut);
+    res.setHeader('Content-Type', 'application/json');
+    res.end(JSON.stringify(response));
+});
+
 router.get('/validations/phone/:rut/:cellphone', async (req, res) => {
     var response = await dbController.validatePhone(res, req.params.rut, req.params.cellphone);
     res.setHeader('Content-Type', 'application/json');

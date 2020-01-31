@@ -147,17 +147,29 @@ export async function validateSMSStatus(response, rut) {
                     //Process finished
                     return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
                 } else {
-                    //SMS Sended and validated, must finish process
-                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.SMS_SENDED_AND_VALIDATED_CODE, CONSTANTS.SMS_SENDED_AND_VALIDATED);
+                    const estados = await getClienteEstado(response, rut);
+                    if(estados && estados.estadoId && estados.estadoId == 3) {
+                        //Process finished
+                        return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
+                    } else {
+                        //SMS Sended and validated, must finish process
+                        return CONSTANTS.createCustomJSONResponse(CONSTANTS.SMS_SENDED_AND_VALIDATED_CODE, CONSTANTS.SMS_SENDED_AND_VALIDATED);
+                    }
                 }
             } else {
                 if(canal && rut_captador) {
                     //Process finished by WhatsApp
                     return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
                 } else {
-                    //Default case, it should no pass here
-                    response.status(CONSTANTS.NOT_FOUND_CODE);
-                    return CONSTANTS.createCustomJSONResponse(CONSTANTS.NOT_FOUND_CODE, CONSTANTS.ERROR_MESSAGE);
+                    const estados = await getClienteEstado(response, rut);
+                    if(estados && estados.estadoId && estados.estadoId == 3) {
+                        //Process finished by WhatsApp
+                        return CONSTANTS.createCustomJSONResponse(CONSTANTS.PROCESS_FINISHED_CODE, CONSTANTS.PROCESS_FINISHED);
+                    } else {
+                        //Default case, it should no pass here
+                        response.status(CONSTANTS.NOT_FOUND_CODE);
+                        return CONSTANTS.createCustomJSONResponse(CONSTANTS.NOT_FOUND_CODE, CONSTANTS.ERROR_MESSAGE);
+                    }
                 }
             }
         }
@@ -413,6 +425,30 @@ export async function getEstado(response, estadoId) {
             return CONSTANTS.createCustomJSONResponse(CONSTANTS.SERVER_OK_CODE, query);
         } else {
             return CONSTANTS.createCustomJSONResponse(CONSTANTS.SERVER_OK_CODE, CONSTANTS.DB_NO_MATCH_MESSAGE);
+        }
+    } catch (err) {
+        response.status(CONSTANTS.BAD_REQUEST_CODE);
+        return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function getClienteEstado(response, rut) {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT estado_id FROM solicitud_inscripcion WHERE rut = ?', 
+        [
+            rut
+        ]);
+        if(query.length) {
+            return {
+                estadoId: query[0].estado_id
+            }
+        } else {
+            return {
+                estadoId: null
+            }
         }
     } catch (err) {
         response.status(CONSTANTS.BAD_REQUEST_CODE);
