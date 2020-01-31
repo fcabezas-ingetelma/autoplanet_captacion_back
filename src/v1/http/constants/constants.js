@@ -22,7 +22,7 @@ export const SMS_RECEIVED_NOT_MATCH = 'El código SMS recibido no coincide con e
 
 export const SMS_SENDED_BUT_NO_VALIDATED = 'El código SMS fue enviado pero no validado, reiniciar.';
 export const SMS_SENDED_AND_VALIDATED = 'El código SMS fue enviado y validado, finalizar proceso.';
-export const PROCESS_FINISHED = 'El usuario ya ha sido registrado con éxito.';
+export const PROCESS_FINISHED = 'Felicitaciones, usted ya se registró anteriormente.';
 
 export const INVALID_CAPTADOR_TOKEN = 'La sesión ha caducado o el usuario no está registrado. Por favor, intente nuevamente haciendo ingreso del usuario.';
 
