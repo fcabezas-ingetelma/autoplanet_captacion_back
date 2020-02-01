@@ -587,76 +587,76 @@ export async function getDashBoardData(token, rut_captador) {
                                                             (SELECT rut_captador, count(*) AS Enrollment FROM clients WHERE canal = 2 and rut_captador BETWEEN 1 AND 10 GROUP BY rut_captador) t2
                                                         ON (t1.rut_captador = t2.rut_captador)`);
             response.dailyStatus = await db.query(`SELECT V.*, Enrolado_Vendedor, Enrolado_Ipad, Enrolado_Limpia_Tapiz FROM
-                                                        (SELECT day(DATE_ADD(created_at, INTERVAL -3 HOUR)) as dia,
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) Visita_Vendedor,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END) Visita_Ipad,
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) Visita_Limpia_Tapiz
-                                                        FROM tracker AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        GROUP BY day(DATE_ADD(created_at, INTERVAL -3 HOUR)) 
-                                                        UNION all
-                                                        SELECT 'Total',
-                                                        SUM(case when canal=2 then 1 ELSE 0 END),
-                                                        SUM(case when canal=18 then 1 ELSE 0 END),
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) 
-                                                        FROM tracker AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(NOW())) AS V
-                                                    LEFT Join
-                                                        (SELECT day(DATE_ADD(created_at, INTERVAL -3 HOUR)) as dia,
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) Enrolado_Vendedor,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END) Enrolado_Ipad,
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) Enrolado_Limpia_Tapiz
-                                                        FROM clients AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        GROUP BY day(DATE_ADD(created_at, INTERVAL -3 HOUR)) 
-                                                        UNION all
-                                                        SELECT 'Total',
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) ,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END),
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) 
-                                                        FROM clients AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        ) AS E
-                                                    ON V.dia=E.dia
-                                                    ORDER BY V.dia`);
+                                                    (SELECT right(CONCAT('0',cast(day(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2) as dia,
+                                                    SUM(case when canal=2 then 1 ELSE 0 END) Visita_Vendedor,
+                                                    SUM(case when canal=18 then 1 ELSE 0 END) Visita_Ipad,
+                                                    SUM(case when canal=19 then 1 ELSE 0 END) Visita_Limpia_Tapiz
+                                                    FROM tracker AS A WHERE canal IN (2,18,19) 
+                                                    AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                    GROUP BY right(CONCAT('0',cast(day(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2) 
+                                                    UNION all
+                                                    SELECT 'Total',
+                                                    SUM(case when canal=2 then 1 ELSE 0 END),
+                                                    SUM(case when canal=18 then 1 ELSE 0 END),
+                                                    SUM(case when canal=19 then 1 ELSE 0 END) 
+                                                    FROM tracker AS A WHERE canal IN (2,18,19) 
+                                                    AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(NOW())) AS V
+                                                LEFT Join
+                                                    (SELECT right(CONCAT('0',cast(day(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2) as dia,
+                                                    SUM(case when canal=2 then 1 ELSE 0 END) Enrolado_Vendedor,
+                                                    SUM(case when canal=18 then 1 ELSE 0 END) Enrolado_Ipad,
+                                                    SUM(case when canal=19 then 1 ELSE 0 END) Enrolado_Limpia_Tapiz
+                                                    FROM clients AS A WHERE canal IN (2,18,19) 
+                                                    AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                    GROUP BY right(CONCAT('0',cast(day(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2)
+                                                    UNION all
+                                                    SELECT 'Total',
+                                                    SUM(case when canal=2 then 1 ELSE 0 END) ,
+                                                    SUM(case when canal=18 then 1 ELSE 0 END),
+                                                    SUM(case when canal=19 then 1 ELSE 0 END) 
+                                                    FROM clients AS A WHERE canal IN (2,18,19) 
+                                                    AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                    ) AS E
+                                                ON V.dia=E.dia
+                                                ORDER BY V.dia`);
             response.hourlyStatus = await db.query(`SELECT V.*, Enrolado_Vendedor, Enrolado_Ipad, Enrolado_Limpia_Tapiz FROM
-                                                        (SELECT hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) as Hora,
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) Visita_Vendedor,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END) Visita_Ipad,
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) Visita_Limpia_Tapiz
-                                                        FROM tracker AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
-                                                        AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        GROUP BY Hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) 
-                                                        UNION all
-                                                        SELECT 'Total',
-                                                        SUM(case when canal=2 then 1 ELSE 0 END),
-                                                        SUM(case when canal=18 then 1 ELSE 0 END),
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) 
-                                                        FROM tracker AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
-                                                        AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        ) AS V
-                                                    LEFT Join
-                                                        (SELECT Hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) as Hora,
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) Enrolado_Vendedor,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END) Enrolado_Ipad,
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) Enrolado_Limpia_Tapiz
-                                                        FROM clients AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
-                                                        AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
-                                                        GROUP BY hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) 
-                                                        UNION all
-                                                        SELECT 'Total',
-                                                        SUM(case when canal=2 then 1 ELSE 0 END) ,
-                                                        SUM(case when canal=18 then 1 ELSE 0 END),
-                                                        SUM(case when canal=19 then 1 ELSE 0 END) 
-                                                        FROM clients AS A WHERE canal IN (2,18,19) 
-                                                        AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
-                                                        AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))	
-                                                        ) AS E
-                                                    ON V.Hora=E.Hora
-                                                    ORDER BY V.Hora`);
+                                                (SELECT concat(right(CONCAT('0',cast(hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2),'-',right(CONCAT('0',CAST(1+hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2)) as Hora,
+                                                SUM(case when canal=2 then 1 ELSE 0 END) Visita_Vendedor,
+                                                SUM(case when canal=18 then 1 ELSE 0 END) Visita_Ipad,
+                                                SUM(case when canal=19 then 1 ELSE 0 END) Visita_Limpia_Tapiz
+                                                FROM tracker AS A WHERE canal IN (2,18,19) 
+                                                AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
+                                                AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                GROUP BY concat(right(CONCAT('0',cast(hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2),'-',right(CONCAT('0',CAST(1+hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2))
+                                                UNION all
+                                                SELECT 'Total',
+                                                SUM(case when canal=2 then 1 ELSE 0 END),
+                                                SUM(case when canal=18 then 1 ELSE 0 END),
+                                                SUM(case when canal=19 then 1 ELSE 0 END) 
+                                                FROM tracker AS A WHERE canal IN (2,18,19) 
+                                                AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
+                                                AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                ) AS V
+                                            LEFT Join
+                                                (SELECT concat(right(CONCAT('0',cast(hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2),'-',right(CONCAT('0',CAST(1+hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2)) as Hora,
+                                                SUM(case when canal=2 then 1 ELSE 0 END) Enrolado_Vendedor,
+                                                SUM(case when canal=18 then 1 ELSE 0 END) Enrolado_Ipad,
+                                                SUM(case when canal=19 then 1 ELSE 0 END) Enrolado_Limpia_Tapiz
+                                                FROM clients AS A WHERE canal IN (2,18,19) 
+                                                AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
+                                                AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))
+                                                GROUP BY concat(right(CONCAT('0',cast(hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2),'-',right(CONCAT('0',CAST(1+hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2))
+                                                UNION all
+                                                SELECT 'Total',
+                                                SUM(case when canal=2 then 1 ELSE 0 END) ,
+                                                SUM(case when canal=18 then 1 ELSE 0 END),
+                                                SUM(case when canal=19 then 1 ELSE 0 END) 
+                                                FROM clients AS A WHERE canal IN (2,18,19) 
+                                                AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR)) 
+                                                AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))	
+                                                ) AS E
+                                            ON V.Hora=E.Hora
+                                            ORDER BY V.Hora`);
             return {
                 status: true, 
                 data: response
