@@ -48,7 +48,11 @@ router.post('/re-send-sms', (req, res) => {
     let sendSms = async (requestBody, config) => {
         const getPhone = await dbController.updateSMSSended(res, req.body.rut, req.body.code);
         if(getPhone) {
-            requestBody.phone = '569' + getPhone;
+            if(req.body.cellphone) {
+                requestBody.phone = '569' + req.body.cellphone;
+            } else {
+                requestBody.phone = '569' + getPhone;
+            }
             const response = await requestController.sendPostRequest(requestBody, config);
             res.setHeader('Content-Type', 'application/json');
             if(response && response.status == 200) {
