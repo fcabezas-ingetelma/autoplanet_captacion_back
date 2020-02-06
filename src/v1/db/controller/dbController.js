@@ -563,13 +563,14 @@ export async function setTokenUsed(cellphone, token) {
 export async function captadorLogin(user, pass) {
     const db = openDBConnection();
     try {
-        var query = await db.query('SELECT rut FROM captadores WHERE rut = ? AND password = SHA1(?)', 
+        var query = await db.query('SELECT admin_type_id FROM captadores WHERE rut = ? AND password = SHA1(?)', 
         [
             user, 
             pass
         ]);
         if(query.length) {
             const token = Utils.randomTokenGenerator();
+            const admin_type = query[0].admin_type_id;
             query = await db.query('UPDATE captadores SET token = ?, expiration = DATE_ADD(?, INTERVAL 15 MINUTE) WHERE rut = ?', 
             [
                 token, 
@@ -578,7 +579,8 @@ export async function captadorLogin(user, pass) {
             ]);
             return {
                 loginStatus: true, 
-                token: token
+                token: token, 
+                adminType: admin_type
             }
         } else {
             return {
