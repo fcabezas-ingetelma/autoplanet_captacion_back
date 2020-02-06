@@ -20,7 +20,8 @@ router.put('/set-tracker', async (req, res) => {
         req.body.canal, 
         req.body.sku, 
         req.body.userAgent, 
-        req.body.os);
+        req.body.os, 
+        req.body.canalPromotor);
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
 });
@@ -50,7 +51,8 @@ router.put('/set-client', async (req, res) => {
         req.body.canal, 
         req.body.sku, 
         req.body.userAgent, 
-        req.body.os);
+        req.body.os, 
+        req.body.canal_promotor);
 
     response.trackerData = tracker;
     res.setHeader('Content-Type', 'application/json');

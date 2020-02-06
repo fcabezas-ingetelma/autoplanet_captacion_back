@@ -2,11 +2,11 @@ import * as CONSTANTS from '../../http/constants/constants';
 import * as Utils from '../../utils/utils';
 import openDBConnection from '../openConnection';
 
-export async function initTracker(response, rut_captador, rut_cliente, ip, cellphone, canal, sku, user_agent, os) {
+export async function initTracker(response, rut_captador, rut_cliente, ip, cellphone, canal, sku, user_agent, os, canalPromotor) {
     const db = openDBConnection();
     try {
         let createdAt = new Date();
-        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, telefono, canal, sku, user_agent, os, created_at, updated_at) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        var query = await db.query('INSERT INTO tracker (rut_captador, rut_cliente, IP, telefono, canal, sku, user_agent, os, created_at, updated_at, canal_promotor) VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
                 [
                     rut_captador, 
                     rut_cliente, 
@@ -17,7 +17,8 @@ export async function initTracker(response, rut_captador, rut_cliente, ip, cellp
                     user_agent, 
                     os, 
                     createdAt,
-                    undefined // Not updated yet
+                    undefined, // Not updated yet 
+                    canalPromotor
                 ]);
         if(query) {
             let data = {
@@ -62,8 +63,9 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
                                                          tipo_cliente, 
                                                          respuesta_cliente, 
                                                          created_at, 
-                                                         updated_at) 
-                                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
+                                                         updated_at, 
+                                                         canal_promotor) 
+                                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     rut,
                     dv,
@@ -82,7 +84,8 @@ export async function insertClient(response, rut, dv, cellphone, email, type, na
                     type,
                     client_response, 
                     new Date(),
-                    undefined // Not updated yet
+                    undefined, // Not updated yet
+                    undefined // canal_promotor is not set on creation
                 ]);
         if(query) {
             return CONSTANTS.createGenericDB_OKJSONResponse();
@@ -203,7 +206,7 @@ export async function setCanalAndCaptador(response, canal, rut_captador, rut_cli
     const db = openDBConnection();
     try {
         var queryString = `UPDATE clients 
-                                    SET {$canal} {$rut_captador} 
+                                    SET {$canal} {$rut_captador} {$canal_promotor}
                                         updated_at = ?
                                     WHERE rut = ?`;
         var queryArray = [];
@@ -218,6 +221,12 @@ export async function setCanalAndCaptador(response, canal, rut_captador, rut_cli
             queryArray.push(rut_captador);
         } else {
             queryString = queryString.replace('{$rut_captador}', '');
+        }
+        if(canal_promotor) {
+            queryString = queryString.replace('{$canal_promotor}', 'canal_promotor = ?,');
+            queryArray.push(canal_promotor);
+        } else {
+            queryString = queryString.replace('{$canal_promotor}', '');
         }
 
         queryArray.push(new Date(), rut_cliente );
