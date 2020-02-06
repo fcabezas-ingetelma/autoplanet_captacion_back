@@ -24,7 +24,12 @@ var config = {
 router.post('/send-sms', (req, res) => {
     requestBody.phone = req.body.phone;
     if(req.body.link) {
-        requestBody.message = CONSTANTS.SMS_MESSAGE_WHATSAPP.replace('{$LINK}', req.body.link)
+        switch (req.body.canal) {
+            case '2': requestBody.message = CONSTANTS.SMS_MESSAGE_CANAL_2.replace('{$LINK}', req.body.link); break;
+            case '18': requestBody.message = CONSTANTS.SMS_MESSAGE_CANAL_18.replace('{$LINK}', req.body.link); break;
+            case '19': requestBody.message = CONSTANTS.SMS_MESSAGE_CANAL_19.replace('{$LINK}', req.body.link); break;
+            default: requestBody.message = CONSTANTS.SMS_MESSAGE_WHATSAPP.replace('{$LINK}', req.body.link);
+        }
     } else {
         requestBody.message = CONSTANTS.SMS_MESSAGE.replace('{$CODE}', req.body.code)
     }
