@@ -90,7 +90,8 @@ router.patch('/set-attendance-data', async (req, res) => {
     var response = await dbController.setCanalAndCaptador(res, 
         req.body.canal, 
         req.body.rut_captador, 
-        req.body.rut_cliente);
+        req.body.rut_cliente, 
+        req.body.canal_promotor);
     res.setHeader('Content-Type', 'application/json');
     res.end(JSON.stringify(response));
 });

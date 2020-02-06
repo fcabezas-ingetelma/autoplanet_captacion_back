@@ -45,7 +45,25 @@ export async function initTracker(response, rut_captador, rut_cliente, ip, cellp
 export async function insertClient(response, rut, dv, cellphone, email, type, name, lastname, birth_date, edad, estado_civil, nacionalidad, sended_sms_code, validated_sms_code, client_response) {
     const db = openDBConnection();
     try {
-        var query = await db.query('INSERT INTO clients VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)',
+        var query = await db.query(`INSERT INTO clients (rut, 
+                                                         dv, 
+                                                         telefono, 
+                                                         email, 
+                                                         nombres, 
+                                                         apellidos, 
+                                                         fecha_nacimiento, 
+                                                         edad, 
+                                                         estado_civil, 
+                                                         nacionalidad, 
+                                                         canal, 
+                                                         rut_captador, 
+                                                         codigo_sms_enviado, 
+                                                         codigo_sms_validado, 
+                                                         tipo_cliente, 
+                                                         respuesta_cliente, 
+                                                         created_at, 
+                                                         updated_at) 
+                                                         VALUES (?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?, ?)`,
                 [
                     rut,
                     dv,
@@ -181,7 +199,7 @@ export async function validateSMSStatus(response, rut) {
     }
 }
 
-export async function setCanalAndCaptador(response, canal, rut_captador, rut_cliente) {
+export async function setCanalAndCaptador(response, canal, rut_captador, rut_cliente, canal_promotor) {
     const db = openDBConnection();
     try {
         var queryString = `UPDATE clients 

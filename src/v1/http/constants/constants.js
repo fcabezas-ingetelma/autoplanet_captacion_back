@@ -14,6 +14,7 @@ export const INVALID_CAPTADOR_TOKEN_CODE = 600;
 
 export const ERROR_MESSAGE = 'Ha habido un problema al procesar su solicitud. Por favor, intente nuevamente';
 export const SMS_MESSAGE = 'Estimado cliente, su codigo es {$CODE} y es valido por 15 minutos.';
+export const SMS_MESSAGE_WHATSAPP = 'Estimado Cliente, para inscribirse y obtener nuestras promociones ingrese al siguiente link: {$LINK}';
 export const DB_OK_MESSAGE = 'DB transaction was OK';
 export const DB_UPDATE_OK_MESSAGE = 'DB UPDATE was OK';
 export const DB_NO_MATCH_MESSAGE = 'La búsqueda no arrojó resultados para los parámetros ingresados';

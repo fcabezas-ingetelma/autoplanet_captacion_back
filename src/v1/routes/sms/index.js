@@ -23,7 +23,11 @@ var config = {
 
 router.post('/send-sms', (req, res) => {
     requestBody.phone = req.body.phone;
-    requestBody.message = CONSTANTS.SMS_MESSAGE.replace('{$CODE}', req.body.code)
+    if(req.body.link) {
+        requestBody.message = CONSTANTS.SMS_MESSAGE_WHATSAPP.replace('{$LINK}', req.body.link)
+    } else {
+        requestBody.message = CONSTANTS.SMS_MESSAGE.replace('{$CODE}', req.body.code)
+    }
 
     let sendSms = async (requestBody, config) => {
         const response = await requestController.sendPostRequest(requestBody, config);
