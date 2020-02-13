@@ -654,6 +654,7 @@ export async function getDashBoardData(token, rut_captador) {
                                                     SUM(case when canal=19 then 1 ELSE 0 END) Visita_Limpia_Tapiz
                                                     FROM (SELECT IP, canal, MIN(created_at) AS created_at from tracker WHERE canal IN (2,18,19) AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
                                                         AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR)) AND HOUR(created_at)>=11
+                                                        AND IP NOT IN (SELECT distinct IP from tracker WHERE canal IN (2,18,19) AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) <day(DATE_ADD(NOW(), INTERVAL -13 HOUR)) )
                                                     GROUP BY IP, Canal) AS A
                                                     GROUP BY concat(right(CONCAT('0',cast(hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2),'-',right(CONCAT('0',CAST(1+hour(DATE_ADD(created_at, INTERVAL -3 HOUR)) AS CHAR)),2))
                                                     UNION all
@@ -663,6 +664,7 @@ export async function getDashBoardData(token, rut_captador) {
                                                     SUM(case when canal=19 then 1 ELSE 0 END)
                                                     FROM (SELECT IP, canal, MIN(created_at) AS created_at from tracker WHERE canal IN (2,18,19) AND Month(DATE_ADD(created_at, INTERVAL -3 HOUR)) =month(DATE_ADD(NOW(), INTERVAL -3 HOUR))
                                                         AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) =day(DATE_ADD(NOW(), INTERVAL -3 HOUR))AND HOUR(created_at)>=11
+                                                        AND IP NOT IN (SELECT distinct IP from tracker WHERE canal IN (2,18,19) AND Day(DATE_ADD(created_at, INTERVAL -3 HOUR)) <day(DATE_ADD(NOW(), INTERVAL -13 HOUR)) )
                                                     GROUP BY IP, Canal) AS A
                                                     ) AS V
                                                 LEFT Join
