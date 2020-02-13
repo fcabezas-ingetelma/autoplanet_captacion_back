@@ -3,6 +3,7 @@ import bodyParser from 'body-parser';
 import dotenv from 'dotenv';
 import http from 'http';
 import https from 'https';
+import cors from 'cors';
 import fs from 'fs';
 
 import sms from './v1/routes/sms/index';
@@ -14,6 +15,7 @@ import backoffice from './v1/routes/backoffice';
 var app = express();
 dotenv.config();
 
+app.use(cors());
 app.use(bodyParser.json())
 app.use(bodyParser.urlencoded({
     extended: true
@@ -29,14 +31,6 @@ const credentials = {
 	cert: certificate,
 	ca: ca
 };
-
-//Development
-app.use(function(req, res, next) {
-    res.header("Access-Control-Allow-Origin", "*");
-    res.header("Access-Control-Allow-Headers", "Origin, X-Requested-With, Content-Type, Accept, token");
-    res.header("Access-Control-Allow-Methods", "*");
-    next();
-});
 
 app.use('/v1/sms', sms);
 app.use('/v1/user', user);
