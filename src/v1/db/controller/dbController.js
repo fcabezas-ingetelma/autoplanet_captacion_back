@@ -242,10 +242,23 @@ export async function setCanalAndCaptador(response, canal, rut_captador, rut_cli
     }
 }
 
-export async function updateClientFromSinacofi(response, rut, nombres, apellidos, fechaNacimiento, edad, estadoCivil, nacionalidad) {
+export async function updateClientFromSinacofi(response, rut, nombres, apellidos, fechaNacimiento, edad, estadoCivil, nacionalidad, sexo, fechaMatrimonio, direccion, ciudad, comuna) {
     const db = openDBConnection();
     try {
-        var query = await db.query('UPDATE clients SET nombres = ?, apellidos = ?, fecha_nacimiento = ?, edad = ?, estado_civil = ?, nacionalidad = ?, updated_at = ? WHERE rut = ?', 
+        var query = await db.query(`UPDATE clients SET 
+                                        nombres = ?, 
+                                        apellidos = ?, 
+                                        fecha_nacimiento = ?, 
+                                        edad = ?, 
+                                        estado_civil = ?, 
+                                        nacionalidad = ?, 
+                                        sexo = ?, 
+                                        fecha_matrimonio = ?, 
+                                        direccion = ?, 
+                                        ciudad = ?, 
+                                        comuna = ?, 
+                                        updated_at = ? 
+                                    WHERE rut = ?`, 
         [ 
             nombres, 
             apellidos, 
@@ -253,6 +266,11 @@ export async function updateClientFromSinacofi(response, rut, nombres, apellidos
             edad, 
             estadoCivil, 
             nacionalidad, 
+            sexo, 
+            fechaMatrimonio, 
+            direccion, 
+            ciudad, 
+            comuna, 
             new Date(), 
             rut 
         ]);
@@ -696,6 +714,22 @@ export async function getDashBoardData(token, rut_captador) {
         }
     } catch (err) {
         return CONSTANTS.createCustomJSONResponse(err.code, err.sqlMessage);
+    } finally {
+        await db.close();
+    }
+}
+
+export async function getAllRuts() {
+    const db = openDBConnection();
+    try {
+        var query = await db.query('SELECT concat(rut, dv) AS rut FROM clients WHERE canal IS NOT NULL');
+        if(query.length) {
+            return query;
+        } else {
+            return null;
+        }
+    } catch (err) {
+        return null;
     } finally {
         await db.close();
     }

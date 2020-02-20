@@ -145,9 +145,38 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
                     </Consulta>
                     </soap:Body>
                 </soap:Envelope>`;
+    await getSinacofiData(res, req.params.rut, requestController, xml, true);
+});
+
+router.get('/batch-sinacofi-data-getter/:key', async (req, res) => {
+    if(req.params.key == process.env.BATCH_SINACOFI_KEY) {
+        var requestController = new HttpRequestController();
+        var xml = `<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                        <soap:Body>
+                        <Consulta xmlns="http://sinacofi.cl/WebServices">
+                            <usuario></usuario>
+                            <clave></clave>
+                            <rut></rut>
+                        </Consulta>
+                        </soap:Body>
+                    </soap:Envelope>`;
+
+        var rutArray = await dbController.getAllRuts();
+        var length = rutArray.length;
+        var i = 0;
+        rutArray.map(data => {
+            getSinacofiData(res, data.rut, requestController, xml, i++ == length - 1);
+        });
+    } else {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse()));
+    }
+});
+
+async function getSinacofiData(res, rut, requestController, xml, closeReq) {
     xml = xml.replace('<usuario></usuario>', '<usuario>' + process.env.SINACOFI_USER + '</usuario>');
     xml = xml.replace('<clave></clave>', '<clave>' + process.env.SINACOFI_CLAVE + '</clave>');
-    xml = xml.replace('<rut></rut>', '<rut>' + req.params.rut + '</rut>');
+    xml = xml.replace('<rut></rut>', '<rut>' + rut + '</rut>');
 
     const requestConfig = {
         'Content-Type': 'text/xml',
@@ -168,18 +197,24 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
 
         var queryResponse = await dbController.updateClientFromSinacofi(
             res, 
-            req.params.rut.substring(0, req.params.rut.length - 1), 
+            rut.substring(0, rut.length - 1), 
             result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
             result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
             result.ConsultaResult.PersonaNatural[0].FechaNac[0], 
             parseInt(result.ConsultaResult.PersonaNatural[0].Edad[0]), 
             result.ConsultaResult.PersonaNatural[0].EstadoCivil[0], 
-            result.ConsultaResult.PersonaNatural[0].Nacionalidad[0]
+            result.ConsultaResult.PersonaNatural[0].Nacionalidad[0], 
+            result.ConsultaResult.PersonaNatural[0].Sexo[0], 
+            result.ConsultaResult.PersonaNatural[0].FechaMatrimonio[0], 
+            result.ConsultaResult.Direccion[0], 
+            result.ConsultaResult.Ciudad[0], 
+            result.ConsultaResult.Comuna[0]
             );
 
         responses.user = queryResponse;
 
-        var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
+        //For now, it not get vehicle data from Sinacofi
+        /*var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
         const { body, statusCode } = response;
         
         parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
@@ -202,7 +237,7 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
                         result.ConsultaResult.Detalles[0].Detalle[i].AnioFabricacion[0], 
                         result.ConsultaResult.Detalles[0].Detalle[i].TasacionDesde[0], 
                         result.ConsultaResult.Detalles[0].Detalle[i].TasacionHasta[0], 
-                        req.params.rut.substring(0, req.params.rut.length - 1)
+                        rut.substring(0, rut.length - 1)
                     );
                     vehicleResults.push(vehicleQueryRes);
                 }
@@ -212,9 +247,14 @@ router.get('/get-sinacofi-data/:rut', async (req, res) => {
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(responses));
             }
-        });
+        });*/
+
+        if(closeReq) {
+            res.setHeader('Content-Type', 'application/json');
+            res.end(JSON.stringify(responses));
+        }
     });
-});
+}
 
 function replaceSOAPTags(body) {
     var xmlBody = body.replace('<soap:Envelope xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/" xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema"><soap:Body><ConsultaResponse xmlns="http://sinacofi.cl/WebServices"><ConsultaResult><CodigoRetorno>10000</CodigoRetorno><TipoPersona>N</TipoPersona><ResultadoConsulta>S</ResultadoConsulta>', '<ConsultaResult>');
