@@ -722,7 +722,7 @@ export async function getDashBoardData(token, rut_captador) {
 export async function getAllRuts() {
     const db = openDBConnection();
     try {
-        var query = await db.query('SELECT concat(rut, dv) AS rut FROM clients WHERE canal IS NOT NULL');
+        var query = await db.query('SELECT concat(rut, dv) AS rut FROM clients WHERE nombres IS NULL AND canal IS NOT NULL');
         if(query.length) {
             return query;
         } else {
