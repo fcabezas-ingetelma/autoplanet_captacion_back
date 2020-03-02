@@ -190,68 +190,69 @@ async function getSinacofiData(res, rut, requestController, xml, closeReq) {
 
     parseString(replaceSOAPTags(body), async function (err, result) {
         if(err) {
-            res.status(CONSTANTS.FORBIDDEN_CODE);
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse));
-        }
-
-        var queryResponse = await dbController.updateClientFromSinacofi(
-            res, 
-            rut.substring(0, rut.length - 1), 
-            result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
-            result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
-            result.ConsultaResult.PersonaNatural[0].FechaNac[0], 
-            parseInt(result.ConsultaResult.PersonaNatural[0].Edad[0]), 
-            result.ConsultaResult.PersonaNatural[0].EstadoCivil[0], 
-            result.ConsultaResult.PersonaNatural[0].Nacionalidad[0], 
-            result.ConsultaResult.PersonaNatural[0].Sexo[0], 
-            result.ConsultaResult.PersonaNatural[0].FechaMatrimonio[0], 
-            result.ConsultaResult.Direccion[0], 
-            result.ConsultaResult.Ciudad[0], 
-            result.ConsultaResult.Comuna[0]
-            );
-
-        responses.user = queryResponse;
-
-        //For now, it not get vehicle data from Sinacofi
-        /*var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
-        const { body, statusCode } = response;
-        
-        parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
-            if(err || result.ConsultaResult.RegistraVehiculos[0] === 'N') {
-                //Does not have a vehicle
+            if(closeReq) {
                 res.setHeader('Content-Type', 'application/json');
-                res.end(JSON.stringify(responses));
-            } else {
-                //Have a vehicle
-                var obj = result.ConsultaResult.Detalles[0].Detalle;
-                var size = obj.length;
-                var vehicleResults = [];
-                for(var i = 0; i < size; i++) {
-                    var vehicleQueryRes = await dbController.insertVehicle(
-                        res, 
-                        result.ConsultaResult.Detalles[0].Detalle[i].Patente[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].Marca[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].Modelo[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].Tipo[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].AnioFabricacion[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].TasacionDesde[0], 
-                        result.ConsultaResult.Detalles[0].Detalle[i].TasacionHasta[0], 
-                        rut.substring(0, rut.length - 1)
-                    );
-                    vehicleResults.push(vehicleQueryRes);
+                res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse));
+            }
+        } else {
+            var queryResponse = await dbController.updateClientFromSinacofi(
+                res, 
+                rut.substring(0, rut.length - 1), 
+                result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
+                result.ConsultaResult.PersonaNatural[0].NombreCompleto[0], 
+                result.ConsultaResult.PersonaNatural[0].FechaNac[0], 
+                parseInt(result.ConsultaResult.PersonaNatural[0].Edad[0]), 
+                result.ConsultaResult.PersonaNatural[0].EstadoCivil[0], 
+                result.ConsultaResult.PersonaNatural[0].Nacionalidad[0], 
+                result.ConsultaResult.PersonaNatural[0].Sexo[0], 
+                result.ConsultaResult.PersonaNatural[0].FechaMatrimonio[0], 
+                result.ConsultaResult.Direccion[0], 
+                result.ConsultaResult.Ciudad[0], 
+                result.ConsultaResult.Comuna[0]
+                );
+
+            responses.user = queryResponse;
+
+            //For now, it not get vehicle data from Sinacofi
+            /*var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
+            const { body, statusCode } = response;
+            
+            parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
+                if(err || result.ConsultaResult.RegistraVehiculos[0] === 'N') {
+                    //Does not have a vehicle
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify(responses));
+                } else {
+                    //Have a vehicle
+                    var obj = result.ConsultaResult.Detalles[0].Detalle;
+                    var size = obj.length;
+                    var vehicleResults = [];
+                    for(var i = 0; i < size; i++) {
+                        var vehicleQueryRes = await dbController.insertVehicle(
+                            res, 
+                            result.ConsultaResult.Detalles[0].Detalle[i].Patente[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].Marca[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].Modelo[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].Tipo[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].AnioFabricacion[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].TasacionDesde[0], 
+                            result.ConsultaResult.Detalles[0].Detalle[i].TasacionHasta[0], 
+                            rut.substring(0, rut.length - 1)
+                        );
+                        vehicleResults.push(vehicleQueryRes);
+                    }
+
+                    responses.vehicle = vehicleResults;
+
+                    res.setHeader('Content-Type', 'application/json');
+                    res.end(JSON.stringify(responses));
                 }
+            });*/
 
-                responses.vehicle = vehicleResults;
-
+            if(closeReq) {
                 res.setHeader('Content-Type', 'application/json');
                 res.end(JSON.stringify(responses));
             }
-        });*/
-
-        if(closeReq) {
-            res.setHeader('Content-Type', 'application/json');
-            res.end(JSON.stringify(responses));
         }
     });
 }
