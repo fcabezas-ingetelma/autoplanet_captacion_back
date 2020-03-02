@@ -161,7 +161,7 @@ router.get('/batch-sinacofi-data-getter/:key', async (req, res) => {
                         </soap:Body>
                     </soap:Envelope>`;
 
-        var rutArray = await dbController.getAllRuts();
+        var rutArray = await dbController.getAllRutsWithoutUserData();
         var length = rutArray.length;
         var i = 0;
         rutArray.map(data => {
@@ -172,6 +172,83 @@ router.get('/batch-sinacofi-data-getter/:key', async (req, res) => {
         res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse()));
     }
 });
+
+router.get('/batch-sinacofi-vehicle-getter/:key', async (req, res) => {
+    if(req.params.key == process.env.BATCH_SINACOFI_KEY) {
+        var requestController = new HttpRequestController();
+        var xml = `<soap:Envelope xmlns:xsi="http://www.w3.org/2001/XMLSchema-instance" xmlns:xsd="http://www.w3.org/2001/XMLSchema" xmlns:soap="http://schemas.xmlsoap.org/soap/envelope/">
+                        <soap:Body>
+                        <Consulta xmlns="http://sinacofi.cl/WebServices">
+                            <usuario></usuario>
+                            <clave></clave>
+                            <rut></rut>
+                        </Consulta>
+                        </soap:Body>
+                    </soap:Envelope>`;
+
+        var rutArray = await dbController.getAllRuts();
+        var length = rutArray.length;
+        var i = 0;
+        rutArray.map(data => {
+            getVehiclesData(res, data.rut, requestController, xml, i++ == length - 1);
+        });
+    } else {
+        res.setHeader('Content-Type', 'application/json');
+        res.end(JSON.stringify(CONSTANTS.createGenericErrorJSONResponse()));
+    }
+});
+
+async function getVehiclesData(res, rut, requestController, xml, closeReq) {
+    xml = xml.replace('<usuario></usuario>', '<usuario>' + process.env.SINACOFI_USER + '</usuario>');
+    xml = xml.replace('<clave></clave>', '<clave>' + process.env.SINACOFI_CLAVE + '</clave>');
+    xml = xml.replace('<rut></rut>', '<rut>' + rut + '</rut>');
+
+    const requestConfig = {
+        'Content-Type': 'text/xml',
+        SOAPAction: 'http://sinacofi.cl/WebServices/Consulta',
+    };
+
+    var { response } = await requestController.sendSOAPRequestWithUrl(process.env.DATOS_VEHICULO_URL, xml, requestConfig);
+    const { body, statusCode } = response;
+
+    var responses = {};
+            
+    parseString(replaceSOAPTagsVehicle(body), async function (err, result) {
+        if(err || result.ConsultaResult.RegistraVehiculos[0] === 'N') {
+            //Does not have a vehicle
+            if(closeReq) {
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(responses));
+            }
+        } else {
+            //Have a vehicle
+            var obj = result.ConsultaResult.Detalles[0].Detalle;
+            var size = obj.length;
+            var vehicleResults = [];
+            for(var i = 0; i < size; i++) {
+                var vehicleQueryRes = await dbController.insertVehicle(
+                    res, 
+                    result.ConsultaResult.Detalles[0].Detalle[i].Patente[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].Marca[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].Modelo[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].Tipo[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].AnioFabricacion[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].TasacionDesde[0], 
+                    result.ConsultaResult.Detalles[0].Detalle[i].TasacionHasta[0], 
+                    rut.substring(0, rut.length - 1)
+                );
+                vehicleResults.push(vehicleQueryRes);
+            }
+
+            responses.vehicle = vehicleResults;
+
+            if(closeReq) {
+                res.setHeader('Content-Type', 'application/json');
+                res.end(JSON.stringify(responses));
+            }
+        }
+    });
+}
 
 async function getSinacofiData(res, rut, requestController, xml, closeReq) {
     xml = xml.replace('<usuario></usuario>', '<usuario>' + process.env.SINACOFI_USER + '</usuario>');
